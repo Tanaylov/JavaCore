@@ -25,6 +25,10 @@ public class Product implements Serializable {
 
     public float getPrice() {return price;}
 
+    public int getId() {
+        return id;
+    }
+
     public static List<Product> getProductList() {return productList;}
 
     public static void printProductList() {

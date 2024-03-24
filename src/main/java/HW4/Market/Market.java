@@ -14,7 +14,7 @@ public class Market {
     private static final float MEDIUM_DISCOUNT = 0.85f;
     private static final float MAX_DISCOUNT = 0.80f;
     private static boolean customerIsExist = false;
-
+    private static HashMap<Integer, Integer> productIDQuantityInMarket = new HashMap<>();
     private static HashMap<Customer, HashSet<Order>> customersAndTheirOrders = new HashMap<>();
     private static Scanner scanner = new Scanner(System.in);
 
@@ -25,9 +25,12 @@ public class Market {
         do {
             choice = choice();
             if (choice == 1) {
-                Customer currentCustomer = getCustomer();
+                setProductIDQuantityInMarket();
 
-                List<Product> currentProductList = getProducts();
+                Customer currentCustomer = getCustomer();
+                if (customerIsExist) System.out.println("Your orders:\n" + customersAndTheirOrders.get(currentCustomer));
+
+                HashMap<Product, Integer> currentProductList = getProducts();
 
                 Order currentOrder = getOrder(currentCustomer, currentProductList);
 
@@ -38,7 +41,7 @@ public class Market {
                     orders.add(currentOrder);
                     customersAndTheirOrders.put(currentCustomer, orders);
                 }
-
+                System.out.println("Your order " + currentOrder);
             }
         }
         while (choice != 0);
@@ -112,18 +115,26 @@ public class Market {
     //endregion get parameter for customer
 
     //region get parameters for market
-    private static List<Product> getProducts() {
-        System.out.println("Add item to your order using item ID or enter 0 - to finish: ");
-        Product.printProductList();
-        List<Product> customersProduct = new ArrayList<>();
+    private static HashMap<Product, Integer> getProducts() {
+        HashMap<Product, Integer> customersProduct = new HashMap<>();
         int productID = Product.getProductList().size();
         while (productID != 0) {
             try {
+                printProductListAndQuantity();
+                System.out.println("\nAdd item to your order using item ID or enter 0 - to finish: ");
                 productID = scanner.nextInt();
                 if (productID <= Product.getProductList().size() && productID > 0) {
-                    customersProduct.add(Product.getProductList().get(productID - 1));
+                    System.out.println("Enter the quantity:");
+                    int quantity = scanner.nextInt();
+                    if (!checkQuantity(productID, quantity))  {
+                        System.out.println(Product.getProductList().get(productID - 1) + " available quantity: "
+                                + productIDQuantityInMarket.get(productID));
+                        continue;
+                    }
+                    productIDQuantityInMarket.put(productID, productIDQuantityInMarket.get(productID) - quantity);
+                    customersProduct.put(Product.getProductList().get(productID - 1), quantity);
                     System.out.println("You add next item: ");
-                    System.out.println(Product.getProductList().get(productID - 1));
+                    System.out.println(Product.getProductList().get(productID - 1) + " - " + quantity + "piece(s)\n");
                 } else if (productID != 0) System.out.println("You try to add non-existent item.");
             } catch (NumberFormatException e) {
                 System.out.println("You enter not a number");
@@ -133,12 +144,13 @@ public class Market {
         return customersProduct;
     }
 
-    private static Order getOrder(Customer customer, List<Product> products) {
+    private static Order getOrder(Customer customer, HashMap<Product, Integer> products) {
         float sum = 0;
-        for (Product product : products) sum += product.getPrice();
+        for (Map.Entry<Product, Integer> pair : products.entrySet()) {
+            sum += pair.getValue() * pair.getKey().getPrice();
+        }
         sum = Math.round(checkDiscount(sum, customer) * 100f) / 100f;
         Order order = new Order(sum, LocalDate.now(), customer, products);
-//        orders.add(order);
         return order;
     }
 
@@ -193,7 +205,12 @@ public class Market {
         }
         return sum;
     }
-
+    private static boolean checkQuantity(int productID, int quantity) {
+        return productIDQuantityInMarket.get(productID) > quantity;
+    }
+    private static void setProductIDQuantityInMarket() {
+        Product.getProductList().forEach(el -> productIDQuantityInMarket.put(el.getId(), 100));
+    }
     private static int choice() {
         System.out.println("You want to make an order (enter '1' to YES '0' to EXIT)?");
         while (true)
@@ -206,7 +223,10 @@ public class Market {
                 System.out.println("You enter not a number");
             }
     }
-
+    private static void printProductListAndQuantity() {
+        Product.getProductList().forEach(el -> System.out.println(el + ": quantity available - " +
+                productIDQuantityInMarket.get(el.getId())));
+    }
 
     private static final class Order implements Serializable {
 
@@ -214,15 +234,22 @@ public class Market {
         private float sum;
         private LocalDate orderDate;
         private Customer customer;
-        private List<Product> products;
-        private short productQuantity;
+        private HashMap<Product, Integer> products;
+        private short productsQuantity = 0;
 
-        private Order(float sum, LocalDate orderDate, Customer customer, List<Product> products) {
+        private Order(float sum, LocalDate orderDate, Customer customer, HashMap<Product, Integer> products) {
             this.identifier = customer.getId() + orderDate.getDayOfMonth() + orderDate.getMonthValue() + sum;
+            this.productsQuantity = getProductsQuantity(products.values());
             this.sum = sum;
             this.orderDate = orderDate;
             this.customer = customer;
             this.products = products;
+        }
+
+        private short getProductsQuantity(Collection<Integer> values) {
+            short result = 0;
+            for (Integer value : values) result += value;
+            return result;
         }
 
         @Override
@@ -247,10 +274,11 @@ public class Market {
         @Override
         public String toString() {
             return "Order ID: " + identifier +
+                    "\nquantity: " + productsQuantity +
                     "\nsum: " + sum +
                     "\norderDate:" + orderDate +
                     "\ncustomer: " + customer +
-                    "\nproducts=" + products;
+                    "\nproducts=" + products + "\n";
         }
     }
 }

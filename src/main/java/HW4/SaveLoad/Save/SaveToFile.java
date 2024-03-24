@@ -1,8 +1,6 @@
 package HW4.SaveLoad.Save;
 
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class SaveToFile {
     private static File file = new File("market.bin");

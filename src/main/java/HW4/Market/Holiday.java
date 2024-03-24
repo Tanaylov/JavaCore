@@ -11,17 +11,10 @@ public enum Holiday {
             LocalDate.of(Year.now().getValue(), 1, 1),
             LocalDate.of(Year.now().getValue(), 1, 2)});
 
-//    private String day;
-//    private String[] days;
     private LocalDate date;
     private LocalDate[] dates;
     Holiday(){}
-//    Holiday(String day) {
-//        this.day = day;
-//    }
-//    Holiday(String[] days) {
-//        this.days = days;
-//    }
+
     Holiday(LocalDate date) {this.date = date;}
     Holiday(LocalDate[] dates) {this.dates = dates;}
 
@@ -33,11 +26,4 @@ public enum Holiday {
         return dates;
     }
 
-    //    public String getDay() {
-//        return day;
-//    }
-//
-//    public String[] getDays() {
-//        return days;
-//    }
 }

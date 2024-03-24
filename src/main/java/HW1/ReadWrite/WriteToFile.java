@@ -13,7 +13,6 @@ public class WriteToFile {
             FileOutputStream fos = new FileOutputStream(path);
             ObjectOutputStream oos = new ObjectOutputStream(fos)
                 ){
-//            oos.writeInt(notes.size());
             oos.writeObject(notes);
         } catch (IOException e) {
             throw new RuntimeException(e);
