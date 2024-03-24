@@ -206,7 +206,7 @@ public class Market {
         return sum;
     }
     private static boolean checkQuantity(int productID, int quantity) {
-        return productIDQuantityInMarket.get(productID) > quantity;
+        return productIDQuantityInMarket.get(productID) > quantity || quantity < 1;
     }
     private static void setProductIDQuantityInMarket() {
         Product.getProductList().forEach(el -> productIDQuantityInMarket.put(el.getId(), 100));
@@ -219,7 +219,8 @@ public class Market {
                 scanner.nextLine();
                 if (choice == 0 || choice == 1) return choice;
                 System.out.println("You need to choose '1' or '0'");
-            } catch (NumberFormatException e) {
+            } catch (InputMismatchException e) {
+                scanner.nextLine();
                 System.out.println("You enter not a number");
             }
     }
